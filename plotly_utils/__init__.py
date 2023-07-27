@@ -269,7 +269,7 @@ def scatter_matrix_histogram(data_frame, dimensions=None, contour:bool=True):
 	fig.update_traces(showscale=False)
 	return fig
 
-def imshow_logscale(img, hoverinfo_z_format:str=':.2e', **kwargs):
+def imshow_logscale(img, hoverinfo_z_format:str=':.2e', minor_ticks='auto', **kwargs):
 	"""The same as `plotly.express.imshow` but with logarithmic color scale.
 	
 	Arguments
@@ -279,6 +279,11 @@ def imshow_logscale(img, hoverinfo_z_format:str=':.2e', **kwargs):
 	hoverinfo_z_format: str, default `':.2e'`
 		A formatting string string for displaying the values in the hover
 		boxes for the color scale.
+	minor_ticks: `'auto'`, `True` or `False`, default `'auto'`
+		If `True`, minor ticks (2,3,4,5,...) are shown, if `False` then
+		only major ticks are shown (1,10,100,1000, etc). If `'auto'` then
+		the decision is made according to the orders of magnitude spanned
+		by the data.
 	
 	Returns
 	-------
@@ -287,11 +292,20 @@ def imshow_logscale(img, hoverinfo_z_format:str=':.2e', **kwargs):
 	"""
 	from engineering_notation import EngNumber
 	
+	if minor_ticks not in {True,False,'auto'}:
+		raise ValueError(f'`minor_ticks` must be True, False or "auto", received {repr(minor_ticks)}. ')
+	
+	log_data = numpy.log10(img)
 	fig = px.imshow(
-		img = numpy.log10(img),
+		img = log_data,
 		**kwargs,
 	)
 	TICKS_VALS = [list(numpy.linspace(10**e,10**(e+1),10)[:-1]) for e in range(-18,12)]
+	if minor_ticks == 'auto':
+		if numpy.nanmax(log_data) - numpy.nanmin(log_data) > 3:
+			minor_ticks = False
+	if minor_ticks == False:
+		TICKS_VALS = [[_[0]] for _ in TICKS_VALS]
 	TICKS_VALS = [_ for l in TICKS_VALS for _ in l]
 	ticks_text = [str(EngNumber(_)) for _ in TICKS_VALS]
 	fig.update_layout(
