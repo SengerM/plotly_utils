@@ -296,6 +296,11 @@ def imshow_logscale(img, hoverinfo_z_format:str=':.2e', minor_ticks='auto', **kw
 		raise ValueError(f'`minor_ticks` must be True, False or "auto", received {repr(minor_ticks)}. ')
 	
 	log_data = numpy.log10(img)
+	
+	text_auto = kwargs.get('text_auto')
+	if text_auto is not None:
+		kwargs.pop('text_auto')
+	
 	fig = px.imshow(
 		img = log_data,
 		**kwargs,
@@ -314,8 +319,19 @@ def imshow_logscale(img, hoverinfo_z_format:str=':.2e', minor_ticks='auto', **kw
 			ticktext = ticks_text,
 		),
 	)
-	fig['data'][0].customdata = img
-	hover_template = fig['data'][0].hovertemplate.split('<br>')
+	fig.data[0].customdata = img
+	hover_template = fig.data[0].hovertemplate.split('<br>')
 	labels_for_hover_template = [_.split(': %{')[0] for _ in hover_template]
-	fig['data'][0].hovertemplate = f"{labels_for_hover_template[0]}: %{{x}}<br>{labels_for_hover_template[1]}: %{{y}}<br>{labels_for_hover_template[2]}: %{{customdata{hoverinfo_z_format}}}<extra></extra>"
+	fig.data[0].hovertemplate = f"{labels_for_hover_template[0]}: %{{x}}<br>{labels_for_hover_template[1]}: %{{y}}<br>{labels_for_hover_template[2]}: %{{customdata{hoverinfo_z_format}}}<extra></extra>"
+	if text_auto is not None:
+		if text_auto == False:
+			pass
+		else:
+			fig.data[0].text = img
+			if text_auto == True:
+				fig.data[0].texttemplate = '%{text}'
+			elif isinstance(text_auto, str):
+				fig.data[0].texttemplate = f'%{{text:{text_auto}}}'
+			else:
+				raise TypeError(f'`text_auto` of type {type(text_auto)} not valid, I was expecting either `bool` or a `str`. See documentation for Plotly `imshow` function https://plotly.com/python-api-reference/generated/plotly.express.imshow.')
 	return fig
