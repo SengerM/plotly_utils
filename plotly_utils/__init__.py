@@ -3,36 +3,15 @@ import plotly.io as pio
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy
+from .templates import my_template, boring_thesis_template
 
 def set_my_template_as_default():
-	MARKERS = ['circle', 'cross', 'x', 'triangle-up', 'star', 'hexagram', 'square', 'diamond', 'hourglass', 'bowtie', 'pentagon', 'triangle-down', 'triangle-left', 'triangle-right', 'star-triangle-up', 'star-triangle-down', 'star-square', 'star-diamond', 'diamond-tall', 'diamond-wide', 'triangle-ne', 'triangle-se', 'triangle-sw', 'triangle-nw',  'hexagon', 'hexagon2', 'octagon']
-	FONT_FAMILY = 'Comfortaa'
-	my_template = pio.templates['plotly']
-	my_template.data.scatter = [
-		go.Scatter(
-			marker = dict(
-				symbol = s, 
-				line = dict(
-						width = .5,
-				),
-			), 
-			error_y = dict(
-				width = 1, 
-				thickness = .8
-				)
-			) for s in MARKERS
-	]
-	my_template.layout['font'] = dict(
-		family = FONT_FAMILY,
-	)
-	my_template.layout['hoverlabel'] = dict(
-		font_family = FONT_FAMILY
-	)
-	my_template.layout['legend'] = dict(
-		valign = 'top',
-	)
 	pio.templates['my_template'] = my_template
 	pio.templates.default = 'my_template'
+
+def set_boring_thesis_template_as_default():
+	pio.templates['boring_thesis_template'] = boring_thesis_template
+	pio.templates.default = 'boring_thesis_template'
 
 def add_grouped_legend(fig, data_frame, x, graph_dimensions, labels:dict=None):
 	"""Create a grouped legend based on the example here https://stackoverflow.com/a/69829305/8849755
