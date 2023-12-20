@@ -59,7 +59,7 @@ boring_thesis_template.layout['legend'] = dict(
 for xy in {'x','y'}:
 	boring_thesis_template.layout[f'{xy}axis'].update(
 		dict(
-			mirror = True,
+			mirror = 'allticks',
 			ticks = 'inside',
 			showline = True,
 		),
