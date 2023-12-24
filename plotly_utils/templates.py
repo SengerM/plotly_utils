@@ -67,3 +67,4 @@ for xy in {'x','y'}:
 	)
 for plot_type in {'contour','heatmap','heatmapgl','histogram2d','histogram2dcontour'}:
 	boring_thesis_template['data'][plot_type][0]['colorscale'] = px.colors.sequential.Peach
+boring_thesis_template['data']['histogram'][0]['marker']['line']['width'] = 0
