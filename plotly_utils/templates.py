@@ -1,5 +1,6 @@
 import plotly.io as pio
 import plotly.graph_objects as go
+import plotly.express as px
 
 MARKERS = ['circle', 'cross', 'x', 'triangle-up', 'star', 'hexagram', 'square', 'diamond', 'hourglass', 'bowtie', 'pentagon', 'triangle-down', 'triangle-left', 'triangle-right', 'star-triangle-up', 'star-triangle-down', 'star-square', 'star-diamond', 'diamond-tall', 'diamond-wide', 'triangle-ne', 'triangle-se', 'triangle-sw', 'triangle-nw',  'hexagon', 'hexagon2', 'octagon']
 
@@ -64,3 +65,5 @@ for xy in {'x','y'}:
 			showline = True,
 		),
 	)
+for plot_type in {'contour','heatmap','heatmapgl','histogram2d','histogram2dcontour'}:
+	boring_thesis_template['data'][plot_type][0]['colorscale'] = px.colors.sequential.Peach
