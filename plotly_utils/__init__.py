@@ -97,6 +97,8 @@ def line(error_y_mode:str=None, grouped_legend:bool=False, **kwargs):
 			x = list(data['x'])
 			y_upper = list(data['y'] + data['error_y']['array'])
 			y_lower = list(data['y'] - data['error_y']['array'] if data['error_y']['arrayminus'] is None else data['y'] - data['error_y']['arrayminus'])
+			y_upper = [_ if _==_ else 0 for _ in y_upper]
+			y_lower = [_ if _==_ else 0 for _ in y_lower]
 			fig.add_trace(
 				go.Scatter(
 					x = x+x[::-1],
