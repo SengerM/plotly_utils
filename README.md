@@ -5,5 +5,5 @@ My personal package of utilities for doing nice plots with [Plotly](https://plot
 ## Installation
 
 ```
-pip3 install git+https://github.com/SengerM/grafica
+pip3 install git+https://github.com/SengerM/plotly_utils
 ```
