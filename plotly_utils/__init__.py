@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy
 from .templates import my_template, boring_thesis_template
+import pandas
 
 def set_my_template_as_default():
 	pio.templates['my_template'] = my_template
@@ -44,7 +45,7 @@ def add_grouped_legend(fig, data_frame, x, graph_dimensions, labels:dict=None):
 
 def line(error_y_mode:str=None, grouped_legend:bool=False, **kwargs):
 	"""Extension of `plotly.express.line`.
-	
+
 	Arguments
 	---------
 	grouped_legend: bool, default `False`
@@ -61,7 +62,7 @@ def line(error_y_mode:str=None, grouped_legend:bool=False, **kwargs):
 			return f"rgba({tuple(int(data['line']['color'].lstrip('#')[i:i+2], 16) for i in (0, 2, 4))},{alpha})".replace('((','(').replace('),',',').replace(' ','')
 		elif 'rgb' in color:
 			return f'rgba({color.replace("rgb(","").replace(")","")}, {alpha})'.replace(' ','')
-	
+
 	ERROR_MODES = {'bar','band','bars','bands',None}
 	if error_y_mode not in ERROR_MODES:
 		raise ValueError(f"'error_y_mode' must be one of {ERROR_MODES}, received {repr(error_y_mode)}.")
@@ -100,7 +101,7 @@ def line(error_y_mode:str=None, grouped_legend:bool=False, **kwargs):
 			reordered_data.append(fig.data[i+int(len(fig.data)/2)])
 			reordered_data.append(fig.data[i])
 		fig.data = tuple(reordered_data)
-	
+
 	if grouped_legend == True:
 		add_grouped_legend(
 			fig = fig,
@@ -109,16 +110,16 @@ def line(error_y_mode:str=None, grouped_legend:bool=False, **kwargs):
 			graph_dimensions = {param: kwargs[param] for param in {'color','symbol','line_dash'} if param in kwargs},
 			labels = kwargs.get('labels'),
 		)
-	
+
 	return fig
 
 def scatter_histogram(samples, bins='auto', error_y=None, density=None, nan_policy='omit', line_shape='hvh', **kwargs) -> go.Scatter:
 	"""Produces a histogram using a *Scatter trace* with `line_shape = 'hvh'`.
 	The idea is that it has the same interface as `plotly.graph_objects.Scatter`
-	but instead of receiving `x` and `y` it receives the samples and 
+	but instead of receiving `x` and `y` it receives the samples and
 	creates the `x` and `y` using `numpy.histogram`. Then it is plotted
-	as a scatter plot, by default using the `line_shape='hvh'` option. 
-	
+	as a scatter plot, by default using the `line_shape='hvh'` option.
+
 	Parameters
 	----------
 	samples: array
@@ -126,27 +127,27 @@ def scatter_histogram(samples, bins='auto', error_y=None, density=None, nan_poli
 	bins: int or sequence of scalars or str, optional
 		This is passed to `numpy.histogram`, see its documentation.
 	error_y: str, default is None
-		This is the dictionary that will be handled to `plotly.graph_objects.Scatter` 
+		This is the dictionary that will be handled to `plotly.graph_objects.Scatter`
 		(see [here](https://plotly.com/python/reference/scatter/#scatter-error_y-type)).
 		In this function I am adding the functionality that the `type`
-		argument of the dictionary can be `'auto'`. In this case the 
+		argument of the dictionary can be `'auto'`. In this case the
 		error bands are calculated using the binomial expression.
 	density: bool, optional
 		This is handled to `numpy.histogram` directly, see its documentation
 		for details.
 	nan_policy: str, default 'omit'
 		Options are `'omit'` and `'raise'`. If `'omit'`, then `NaN` values
-		in the data are removed. If `'raise'` then `NaN` values in the 
+		in the data are removed. If `'raise'` then `NaN` values in the
 		data will raise a `ValueError`. This is the same [behavior adopted
 		by scipy](https://docs.scipy.org/doc/scipy-1.8.0/html-scipyorg/dev/api-dev/nan_policy.html).
 	line_shape: str, default 'hvh'
 		This is handled to `plotly.graph_objects.Scatter`.
-	
+
 	Returns
 	-------
 	trace: plotly.graph_objects.Scatter
 		A `plotly.graph_objects.Scatter` object.
-	
+
 	Example
 	-------
 	```
@@ -186,7 +187,7 @@ def scatter_histogram(samples, bins='auto', error_y=None, density=None, nan_poli
 	# Add an extra bin to the right:
 	hist = numpy.append(hist,sum(samples>bin_edges[-1]))
 	bin_centers = numpy.append(bin_centers, bin_centers[-1]+numpy.diff(bin_edges)[0])
-	
+
 	if isinstance(error_y, dict) and error_y.get('type') == 'auto':
 		n = len(samples)
 		p = hist/n
@@ -208,25 +209,25 @@ def scatter_histogram(samples, bins='auto', error_y=None, density=None, nan_poli
 def scatter_matrix_histogram(data_frame, dimensions=None, contour:bool=True):
 	"""Produce a scatter matrix plot (https://plotly.com/python/splom/)
 	but with 2D histograms.
-	
+
 	Parameters
 	----------
 	data_frame: pandas.DataFrame
 		Data frame containing the data to plot.
 	dimensions: list of str
-		Either names of columns in `data_frame`, or pandas Series, or 
-		array_like objects Values from these columns are used for 
+		Either names of columns in `data_frame`, or pandas Series, or
+		array_like objects Values from these columns are used for
 		multidimensional visualization.
 	"""
 	if not isinstance(dimensions, list) or any([not isinstance(s,str) for s in dimensions]) or any([s not in data_frame.columns for s in dimensions]):
 		raise TypeError(f'`dimensions` must be a list of strings naming columns in the `data_frame`.')
 	data_frame = data_frame[dimensions]
-	
+
 	if contour == False:
 		raise NotImplementedError(f'`contour=False` is not implemented yet.')
-	
+
 	fig = make_subplots(
-		len(data_frame.columns), 
+		len(data_frame.columns),
 		len(data_frame.columns),
 		shared_xaxes = True,
 		shared_yaxes = True,
@@ -250,38 +251,43 @@ def scatter_matrix_histogram(data_frame, dimensions=None, contour:bool=True):
 	fig.update_traces(showscale=False)
 	return fig
 
-def imshow_logscale(img, hoverinfo_z_format:str=':.2e', minor_ticks='auto', **kwargs):
+def imshow_logscale(img, hoverinfo_z_format:str=':.2e', minor_ticks='auto', draw_contours:bool=True, **kwargs):
 	"""The same as `plotly.express.imshow` but with logarithmic color scale.
-	
+
 	Arguments
 	---------
 	img: array like
 		The same as `img` for `plotly.express.imshow`.
-	hoverinfo_z_format: str, default `':.2e'`
+	hoverinfo_z_format:
 		A formatting string string for displaying the values in the hover
 		boxes for the color scale.
-	minor_ticks: `'auto'`, `True` or `False`, default `'auto'`
+	minor_ticks:
 		If `True`, minor ticks (2,3,4,5,...) are shown, if `False` then
 		only major ticks are shown (1,10,100,1000, etc). If `'auto'` then
 		the decision is made according to the orders of magnitude spanned
 		by the data.
-	
+	draw_contours:
+		If `True`, contour lines for each tick will be added to the plot.
+
 	Returns
 	-------
 	fig: plotly.graph_objects._figure.Figure
 		A figure, same as `plotly.express.imshow`.
 	"""
 	from engineering_notation import EngNumber
-	
+
 	if minor_ticks not in {True,False,'auto'}:
 		raise ValueError(f'`minor_ticks` must be True, False or "auto", received {repr(minor_ticks)}. ')
-	
+
+	if not isinstance(draw_contours, bool):
+		raise TypeError(f'`draw_contours` must be boolean, received object of type {type(draw_contours)}. ')
+
 	log_data = numpy.log10(img)
-	
+
 	text_auto = kwargs.get('text_auto')
 	if text_auto is not None:
 		kwargs.pop('text_auto')
-	
+
 	fig = px.imshow(
 		img = log_data,
 		**kwargs,
@@ -315,4 +321,27 @@ def imshow_logscale(img, hoverinfo_z_format:str=':.2e', minor_ticks='auto', **kw
 				fig.data[0].texttemplate = f'%{{text:{text_auto}}}'
 			else:
 				raise TypeError(f'`text_auto` of type {type(text_auto)} not valid, I was expecting either `bool` or a `str`. See documentation for Plotly `imshow` function https://plotly.com/python-api-reference/generated/plotly.express.imshow.')
+
+	if draw_contours:
+		for tick_val, tick_text in zip(TICKS_VALS, ticks_text):
+			if not numpy.ravel(img).min() < tick_val < numpy.ravel(img).max():
+				continue
+			fig.add_contour(
+				z = img,
+				y = img.index,
+				x = img.columns,
+				contours = dict(
+					type = 'constraint',
+					operation = '=',
+					value = tick_val,
+					showlabels = True,
+					coloring = 'none',
+				),
+				line = dict(
+					width = .5,
+					color = 'black',
+				),
+				showlegend = False,
+				hoverinfo = 'skip',
+			)
 	return fig
