@@ -26,9 +26,11 @@ data = pandas.DataFrame(
 # Plot:
 for scale,func in {'lin':imshow, 'log':imshow_logscale}.items():
 	fig = func(
+		title = f'{scale} scale',
 		img = data,
 		origin = 'lower',
 		aspect = 'auto',
+		labels = {'color': 'f(x,y)=10<sup>x+y</sup>+sinh(x)<sup>2</sup>'},
 	)
 	fig.write_html(
 		SAVE_PLOTS_HERE/f'{scale}_scale.html',
