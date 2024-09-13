@@ -3,16 +3,8 @@ import plotly.io as pio
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy
-from .templates import my_template, boring_thesis_template
 import pandas
 
-def set_my_template_as_default():
-	pio.templates['my_template'] = my_template
-	pio.templates.default = 'my_template'
-
-def set_boring_thesis_template_as_default():
-	pio.templates['boring_thesis_template'] = boring_thesis_template
-	pio.templates.default = 'boring_thesis_template'
 
 def add_grouped_legend(fig, data_frame, x, graph_dimensions, labels:dict=None):
 	"""Create a grouped legend based on the example here https://stackoverflow.com/a/69829305/8849755

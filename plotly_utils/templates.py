@@ -10,13 +10,13 @@ my_template = pio.templates['plotly']
 my_template.data.scatter = [
 	go.Scatter(
 		marker = dict(
-			symbol = s, 
+			symbol = s,
 			line = dict(
 					width = .5,
 			),
-		), 
+		),
 		error_y = dict(
-			width = 1, 
+			width = 1,
 			thickness = .8
 			)
 		) for s in MARKERS
@@ -31,19 +31,24 @@ my_template.layout['legend'] = dict(
 	valign = 'top',
 )
 
+
+def set_my_template_as_default():
+	pio.templates['my_template'] = my_template
+	pio.templates.default = 'my_template'
+
 # BORING THESIS TEMPLATE -----------------------------------------------
 
 boring_thesis_template = pio.templates['simple_white']
 boring_thesis_template.data.scatter = [
 	go.Scatter(
 		marker = dict(
-			symbol = s, 
+			symbol = s,
 			line = dict(
 					width = .5,
 			),
-		), 
+		),
 		error_y = dict(
-			width = 1, 
+			width = 1,
 			thickness = .8
 			)
 		) for s in MARKERS
@@ -68,3 +73,7 @@ for xy in {'x','y'}:
 # ~ for plot_type in {'contour','heatmap','heatmapgl','histogram2d','histogram2dcontour'}:
 	# ~ boring_thesis_template['data'][plot_type][0]['colorscale'] = px.colors.sequential.Peach
 boring_thesis_template['data']['histogram'][0]['marker']['line']['width'] = 0
+
+def set_boring_thesis_template_as_default():
+	pio.templates['boring_thesis_template'] = boring_thesis_template
+	pio.templates.default = 'boring_thesis_template'
