@@ -5,6 +5,20 @@ from plotly.subplots import make_subplots
 import numpy
 import pandas
 
+def update_recursively(
+	self,
+		# The dictionary to be updated.
+	other,
+		# The dictionary to be used to update `self`.
+)->dict:
+	"""Similar to [`dict.update`](https://docs.python.org/3/library/stdtypes.html#dict.update) but recursive."""
+	for key,item in self.items():
+		if key in other:
+			if isinstance(item,dict):
+				update_recursively(self[key], other[key])
+			else:
+				self[key] = other[key]
+	return self
 
 def add_grouped_legend(fig, data_frame, x, graph_dimensions, labels:dict=None):
 	"""Create a grouped legend based on the example here https://stackoverflow.com/a/69829305/8849755
@@ -243,24 +257,22 @@ def scatter_matrix_histogram(data_frame, dimensions=None, contour:bool=True):
 	fig.update_traces(showscale=False)
 	return fig
 
-def imshow_logscale(img, hoverinfo_z_format:str=':.2e', minor_ticks='auto', draw_contours:bool=True, **kwargs):
-	"""The same as `plotly.express.imshow` but with logarithmic color scale.
-
-	Arguments
-	---------
-	img: array like
-		The same as `img` for `plotly.express.imshow`.
-	hoverinfo_z_format:
-		A formatting string string for displaying the values in the hover
-		boxes for the color scale.
-	minor_ticks:
-		If `True`, minor ticks (2,3,4,5,...) are shown, if `False` then
-		only major ticks are shown (1,10,100,1000, etc). If `'auto'` then
-		the decision is made according to the orders of magnitude spanned
-		by the data.
-	draw_contours:
-		If `True`, contour lines for each tick will be added to the plot.
-
+def imshow_logscale(
+	# The same as `plotly.express.imshow` but with logarithmic color scale, and contours.
+	img,
+		# The same as `img` for `plotly.express.imshow`.
+	hoverinfo_z_format:str = ':.2e',
+		# A formatting string string for displaying the values in the hover boxes for the color scale.
+	minor_ticks = 'auto',
+		# If `True`, minor ticks (2,3,4,5,...) are shown, if `False` then only major ticks are shown (1,10,100,1000, etc). If `'auto'` then the decision is made according to the orders of magnitude spanned by the data.
+	draw_contours:bool = True,
+		# If `True`, contour lines for each tick will be added to the plot.
+	contours_parameters:dict = None,
+		# A dictionary with any arguments to be passed to the function drawing the contours. Available options should be [here](https://plotly.com/python/reference/contour/).
+	**kwargs,
+		# Any arguments to be passed to [`plotly.express.imshow`](https://plotly.com/python-api-reference/generated/plotly.express.imshow).
+):
+	"""
 	Returns
 	-------
 	fig: plotly.graph_objects._figure.Figure
@@ -316,12 +328,7 @@ def imshow_logscale(img, hoverinfo_z_format:str=':.2e', minor_ticks='auto', draw
 
 	if draw_contours:
 		for tick_val, tick_text in zip(TICKS_VALS, ticks_text):
-			if not numpy.ravel(img).min() < tick_val < numpy.ravel(img).max():
-				continue
-			fig.add_contour(
-				z = img,
-				y = img.index,
-				x = img.columns,
+			CONTOURS_DEFAULT_PARAMETERS = dict(
 				contours = dict(
 					type = 'constraint',
 					operation = '=',
@@ -335,5 +342,13 @@ def imshow_logscale(img, hoverinfo_z_format:str=':.2e', minor_ticks='auto', draw
 				),
 				showlegend = False,
 				hoverinfo = 'skip',
+			)
+			if not numpy.ravel(img).min() < tick_val < numpy.ravel(img).max():
+				continue
+			fig.add_contour(
+				z = img,
+				y = img.index,
+				x = img.columns,
+				**(update_recursively(CONTOURS_DEFAULT_PARAMETERS, contours_parameters) if contours_parameters is not None else CONTOURS_DEFAULT_PARAMETERS),
 			)
 	return fig
