@@ -12,4 +12,4 @@ pip3 install git+https://github.com/SengerM/plotly_utils
 
 See the [examples](examples) directory.
 
-![Logarithmic color scale](img/Screenshot from 2024-09-13 08-50-32.png)
+![Logarithmic color scale plot](img/log_colorscale_plot.png)
