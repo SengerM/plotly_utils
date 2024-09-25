@@ -21,12 +21,6 @@ my_template.data.scatter = [
 			)
 		) for s in MARKERS
 ]
-my_template.layout['font'] = dict(
-	family = 'Comfortaa',
-)
-my_template.layout['hoverlabel'] = dict(
-	font_family = 'Comfortaa'
-)
 my_template.layout['legend'] = dict(
 	valign = 'top',
 )
