@@ -23,6 +23,10 @@ def set_my_template_as_default():
 	my_template.layout['legend'] = dict(
 		valign = 'top',
 	)
+	my_template.layout['plot_bgcolor'] = 'rgba(0, 78, 204, .1)'
+	for xy in {'x','y'}:
+		my_template.layout[f'{xy}axis']['gridcolor'] = 'rgba(255,255,255, .5)'
+	my_template.layout['legend']['bgcolor'] = 'rgba(255,255,255, 0)'
 	pio.templates['my_template'] = my_template
 	pio.templates.default = 'my_template'
 
