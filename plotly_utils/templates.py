@@ -6,25 +6,30 @@ MARKERS = ['circle', 'cross', 'x', 'triangle-up', 'star', 'hexagram', 'square', 
 
 def set_my_template_as_default():
 	my_template = pio.templates['plotly'] # This is not the best approach, because it creates are reference to the original template and will modify it, but I did not find a better way at the moment.
-	my_template.data.scatter = [
-		go.Scatter(
-			**(
-				dict(
-					marker = dict(
-						symbol = s,
-						line = dict(
-								width = .5,
-						),
-					),
-				) | {
-					f'error_{xy}': dict(
-						width = 1,
-						thickness = .8
-					) for xy in {'x','y'}
-				}
-			)
-		) for s in MARKERS
-	]
+	for plotting_method_name,plotting_method in {'scatter':go.Scatter,'scattergl':go.Scattergl}.items():
+		setattr(
+			my_template.data,
+			plotting_method_name,
+			[
+				plotting_method(
+					**(
+						dict(
+							marker = dict(
+								symbol = s,
+								line = dict(
+										width = .5,
+								),
+							),
+						) | {
+							f'error_{xy}': dict(
+								width = 1,
+								thickness = .8
+							) for xy in {'x','y'}
+						}
+					)
+				) for s in MARKERS
+			]
+		)
 	my_template.layout['legend'] = dict(
 		valign = 'top',
 	)
