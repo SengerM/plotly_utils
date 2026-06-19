@@ -20,6 +20,26 @@ def update_recursively(
 				self[key] = other[key]
 	return self
 
+def px_with_grouped_legend(px_function, **kwargs):
+	"""
+	Universal wrapper for any plotly.express function that automatically
+	applies grouped legend when multiple dimensions are used.
+
+	Usage:
+		fig = px_with_grouped_legend(px.line, data_frame=df, x='time',
+									 y='value', color='category', symbol='type')
+		fig = px_with_grouped_legend(px.scatter, data_frame=df, x='x',
+									 y='y', color='group')
+	"""
+	fig = px_function(**kwargs)
+	graph_dimensions = {k: kwargs[k] for k in ['color', 'symbol', 'line_dash']
+					   if k in kwargs}
+	if graph_dimensions:
+		add_grouped_legend(fig, kwargs['data_frame'], kwargs.get('x'),
+						  graph_dimensions, kwargs.get('labels'))
+	return fig
+
+
 def add_grouped_legend(fig, data_frame, x, graph_dimensions, labels:dict=None):
 	"""Create a grouped legend based on the example here https://stackoverflow.com/a/69829305/8849755
 	- fig: The figure in which to add such grouped legend.
