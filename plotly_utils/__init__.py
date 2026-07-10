@@ -35,33 +35,19 @@ def px_with_grouped_legend(px_function, **kwargs):
 	graph_dimensions = {k: kwargs[k] for k in ['color', 'symbol', 'line_dash']
 					   if k in kwargs}
 	if graph_dimensions:
-		add_grouped_legend(fig, kwargs['data_frame'], kwargs.get('x'),
+		replace_legend_with_grouped_legend(fig, kwargs['data_frame'], kwargs.get('x'),
 						  graph_dimensions, kwargs.get('labels'))
 	return fig
 
-
-def add_grouped_legend(fig, data_frame, x, graph_dimensions, labels:dict=None):
-	"""Create a grouped legend with one entry per unique value of each dimension.
-	
-	NOTE: The legend is non-interactive (clicking items won't hide/show traces)
-	because Plotly's legendgroup system doesn't support multi-dimensional interactivity.
-	
+def replace_legend_with_grouped_legend(fig, data_frame, x, graph_dimensions, labels:dict=None):
+	"""Create a grouped legend based on the example here https://stackoverflow.com/a/69829305/8849755
 	- fig: The figure in which to add such grouped legend.
-	- data_frame: The data frame from which to create the legend.
-	- x: The x-axis column name.
-	- graph_dimensions: A dictionary with arguments like 'color', 'symbol', 'line_dash'.
-	- labels: Optional dictionary to rename dimension column names in the legend.
-	"""
-	if labels is None:
-		labels = dict()
-	
-	# Store original number of traces
+	- data_frame: The data frame from which to create the legend, in principle it should be the same that was plotted in `fig`.
+	- graph_dimensions: A dictionary with the arguments such as `color`, `symbol`, `line_dash` passed to plotly.express functions you want to group, with the names of the columns in the data_frame."""
 	original_traces = list(fig.data)
-	
 	# Hide all existing legend entries
 	for trace in original_traces:
 		trace.showlegend = False
-	
 	# Remove the legend title and disable legend interactivity
 	fig.update_layout(
 		legend_title_text='',
@@ -70,110 +56,6 @@ def add_grouped_legend(fig, data_frame, x, graph_dimensions, labels:dict=None):
 			itemdoubleclick=False,  # Disable double click
 		)
 	)
-
-	# Build a mapping of dimension -> unique values from the data
-	dimension_values = {}
-	for dimension, column_name in graph_dimensions.items():
-		dimension_values[dimension] = sorted(data_frame[column_name].unique())
-
-	# Create a mapping from trace name to trace properties
-	trace_to_dimensions = {}
-	for idx, trace in enumerate(original_traces):
-		trace_dims = {}
-		# Match trace to dimension values based on trace.name
-		for dimension, column_name in graph_dimensions.items():
-			for value in dimension_values[dimension]:
-				if str(value) in str(trace.name):
-					trace_dims[dimension] = value
-					break
-		trace_to_dimensions[idx] = trace_dims
-
-	# Collect new legend traces to add at the end
-	new_legend_traces = []
-
-	# Track which dimensions have already had their title set
-	dimensions_with_title = set()
-
-	# For each dimension, create legend entries
-	# NOTE: Only the last dimension will be fully interactive due to legendgroup limitations
-	for dimension, column_name in sorted(graph_dimensions.items()):
-		dimension_label = labels.get(column_name, column_name)
-
-		for value in dimension_values[dimension]:
-			# Find all original traces that match this dimension value
-			matching_trace_indices = []
-			representative_trace = None
-			for idx, trace in enumerate(original_traces):
-				dims = trace_to_dimensions[idx]
-				if dims.get(dimension) == value:
-					matching_trace_indices.append(idx)
-					if representative_trace is None:
-						representative_trace = trace
-
-			if representative_trace is None:
-				continue
-
-			# Create a new trace for the legend entry
-			legend_trace = px.line(
-				data_frame.head(1), # Just need one point
-				x=x,
-				y=numpy.full(1, float('NaN')), # Invisible
-				**{dimension: column_name} # Pass the dimension
-			)
-
-			# Configure the legend trace
-			for new_trace in legend_trace.data:
-				# Copy visual properties from the representative trace
-				if dimension == 'color':
-					if hasattr(representative_trace, 'line') and representative_trace.line:
-						new_trace.line.color = representative_trace.line.color
-					if hasattr(representative_trace, 'marker') and representative_trace.marker:
-						new_trace.marker.color = representative_trace.marker.color
-				elif dimension == 'symbol':
-					if hasattr(representative_trace, 'marker') and representative_trace.marker:
-						new_trace.marker.symbol = representative_trace.marker.symbol
-						# Use black color for symbol-only entries
-						new_trace.marker.color = '#000000'
-						new_trace.line.color = '#000000'
-				elif dimension == 'line_dash':
-					if hasattr(representative_trace, 'line') and representative_trace.line:
-						new_trace.line.dash = representative_trace.line.dash
-						new_trace.marker.color = '#000000'
-						new_trace.line.color = '#000000'
-
-				# Set legend properties
-				new_trace.name = str(value)
-				# Create a legendgroup that includes all matching original traces
-				new_trace.legendgroup = f"{dimension}_{value}"
-
-				# Only set legendgrouptitle on the first trace of each dimension
-				if dimension not in dimensions_with_title:
-					new_trace.legendgrouptitle = dict(text=dimension_label)
-					dimensions_with_title.add(dimension)
-
-				new_trace.showlegend = True
-				new_trace.hoverinfo = 'skip'
-
-				# Link this legend trace to all matching original traces
-				# by adding them to the same legendgroup
-				# NOTE: This will overwrite previous legendgroup assignments,
-				# so only the last dimension will be interactive
-				for idx in matching_trace_indices:
-					original_traces[idx].legendgroup = f"{dimension}_{value}"
-
-				# Collect the legend trace
-				new_legend_traces.append(new_trace)
-
-	# Add all new legend traces at once
-	for trace in new_legend_traces:
-		fig.add_trace(trace)
-
-
-def add_grouped_legend_old(fig, data_frame, x, graph_dimensions, labels:dict=None):
-	"""Create a grouped legend based on the example here https://stackoverflow.com/a/69829305/8849755
-	- fig: The figure in which to add such grouped legend.
-	- data_frame: The data frame from which to create the legend, in principle it should be the same that was plotted in `fig`.
-	- graph_dimensions: A dictionary with the arguments such as `color`, `symbol`, `line_dash` passed to plotly.express functions you want to group, with the names of the columns in the data_frame."""
 	if labels is None:
 		labels = dict()
 	param_list = [{'px': {dimension: dimension_value}, 'lg': {'legendgrouptitle_text': (dimension_value if labels.get(dimension_value) is None else labels.get(dimension_value))}} for dimension, dimension_value in sorted(graph_dimensions.items())]
